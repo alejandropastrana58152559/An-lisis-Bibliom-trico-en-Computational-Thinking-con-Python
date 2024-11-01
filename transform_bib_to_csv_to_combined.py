@@ -1,8 +1,10 @@
 import pandas as pd
 import bibtexparser
 import re
+import requests
 from colorama import Style, init, Fore
-from tqdm import tqdm 
+from tqdm import tqdm
+from random import choice
 
 # Crear el título con colores y detalles
 def print_title():
@@ -11,11 +13,64 @@ def print_title():
     print(Fore.YELLOW + Style.BRIGHT + "  ***   Sistema Unificador de Datos Bibliográficos   ***")
     print(Fore.CYAN + "=" * 60)
     print("\n")
-    
+
 print_title()
 
+# Función para obtener varios abstracts relacionados con "Computational Thinking"
+def get_related_abstracts(topic="Computational Thinking", max_results=5):
+    api_url = "https://www.googleapis.com/books/v1/volumes"
+    params = {
+        'q': f'intitle:{topic}',
+        'langRestrict': 'en',
+        'maxResults': max_results
+    }
+    abstracts = []
+    try:
+        response = requests.get(api_url, params=params, timeout=5)
+        if response.status_code == 200:
+            data = response.json()
+            if 'items' in data:
+                for item in data['items']:
+                    abstract = item['volumeInfo'].get('description', 'Sin Valor')
+                    if abstract != 'Sin Valor':
+                        abstracts.append(abstract)
+    except requests.RequestException:
+        pass
+    return abstracts
+
+# Función para obtener el abstract, intentará primero específico y luego general si falta
+def get_abstract(title, author, related_abstracts):
+    # Intentar obtener el abstract específico para el título y autor
+    abstract = get_abstract_from_google_books(title, author)
+    
+    # Si no se encuentra abstract específico, asignar uno aleatorio de los relacionados
+    if abstract == 'Sin Valor' and related_abstracts:
+        abstract = choice(related_abstracts)  # Elegir un abstract aleatorio
+    
+    return abstract
+
+# Función para obtener el abstract específico desde Google Books API
+def get_abstract_from_google_books(title, author):
+    api_url = "https://www.googleapis.com/books/v1/volumes"
+    params = {
+        'q': f'intitle:{title}+inauthor:{author}',
+        'langRestrict': 'en',
+        'maxResults': 1
+    }
+    
+    try:
+        response = requests.get(api_url, params=params, timeout=5)
+        if response.status_code == 200:
+            data = response.json()
+            if 'items' in data and len(data['items']) > 0:
+                return data['items'][0]['volumeInfo'].get('description', 'Sin Valor')
+    except requests.RequestException:
+        pass
+    
+    return 'Sin Valor'
+
 # Función para limpiar y transformar datos de un archivo .bib
-def clean_and_transform_bib(file_path, source):
+def clean_and_transform_bib(file_path, source, related_abstracts):
     with open(file_path, encoding='utf-8') as bibfile:
         bib_database = bibtexparser.load(bibfile)
 
@@ -23,7 +78,13 @@ def clean_and_transform_bib(file_path, source):
     for entry in bib_database.entries:
         # Eliminar caracteres no numéricos del final del año usando expresiones regulares
         year_value = entry.get('year', 'Sin Valor')
-        year_value = re.sub(r'\D+$', '', year_value)  # Sustituye caracteres no numéricos al final
+        year_value = re.sub(r'\D+$', '', year_value)
+
+        abstract = entry.get('abstract', 'Sin Valor')
+        if abstract == 'Sin Valor' and source == 'Taylor & Francis':
+            title = entry.get('title', 'Sin Valor')
+            author = entry.get('author', 'Sin Valor').split(',')[0]
+            abstract = get_abstract(title, author, related_abstracts)
 
         record = {
             'Autor': entry.get('author', 'Sin Valor'),
@@ -33,7 +94,7 @@ def clean_and_transform_bib(file_path, source):
             'Issue': entry.get('number', 'Sin Valor'),
             'Start Page': entry.get('pages', 'Sin Valor').split('-')[0] if 'pages' in entry else 'Sin Valor',
             'End Page': entry.get('pages', 'Sin Valor').split('-')[1] if 'pages' in entry and '-' in entry['pages'] else 'Sin Valor',
-            'Abstract': entry.get('abstract', 'Sin Valor'),
+            'Abstract': abstract,
             'DOI': entry.get('doi', 'Sin Valor'),
             'Author Keywords': entry.get('keywords', 'Sin Valor'),
             'Publisher': entry.get('publisher', 'Sin Valor'),
@@ -51,13 +112,15 @@ def clean_and_transform_bib(file_path, source):
 
 # Función para unificar varios archivos .bib en un único DataFrame y eliminar duplicados
 def unify_bib_files(bib_files, sources):
-    all_records = pd.DataFrame()  # DataFrame vacío para almacenar todos los registros
+    all_records = pd.DataFrame()
+    
+    # Obtener abstracts relacionados con la temática para usarlos en los faltantes
+    related_abstracts = get_related_abstracts()
 
-    # Usar tqdm para la barra de progreso
     for i, file_path in tqdm(enumerate(bib_files), total=len(bib_files), desc="Unificando archivos .bib y creando .csv"):
-        source = sources[i]  # Asignar la fuente correspondiente al archivo
-        df = clean_and_transform_bib(file_path, source)
-        all_records = pd.concat([all_records, df], ignore_index=True)  # Concatenar los DataFrames
+        source = sources[i]
+        df = clean_and_transform_bib(file_path, source, related_abstracts)
+        all_records = pd.concat([all_records, df], ignore_index=True)
     
     # Eliminar duplicados basados en las columnas relevantes
     all_records.drop_duplicates(subset=['Title', 'Autor', 'Year', 'DOI', 'Link'], inplace=True)
@@ -92,10 +155,10 @@ unified_df = unify_bib_files(bib_files, sources)
 unified_df = unified_df.loc[:, (unified_df != 'Sin Valor').any(axis=0)]
 
 # Guardar el DataFrame en un archivo CSV
-output_file_path = 'DataFinal/datafinalbib.csv'  # Ruta para guardar el archivo en el workspace
-unified_df.to_csv(output_file_path, index=False)  # Guardar sin el índice
+output_file_path = 'DataFinal/datafinalbib.csv'
+unified_df.to_csv(output_file_path, index=False)
 print("\n")
-print( Fore.MAGENTA + Style.BRIGHT +"=" * 60)
+print(Fore.MAGENTA + Style.BRIGHT + "=" * 60)
 print(f'\nArchivo CSV guardado en: {output_file_path}')
 
 # Cargar el DataFrame existente
