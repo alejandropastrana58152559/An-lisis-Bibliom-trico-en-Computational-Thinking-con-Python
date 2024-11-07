@@ -58,7 +58,7 @@ def count_keywords_in_abstracts(df, categories):
 
     return keyword_frequencies
 
-# Función para generar la nube de palabras
+# Función para generar una única nube de palabras
 def generate_wordcloud(keyword_frequencies):
     # Combinar todas las palabras clave en un solo diccionario para WordCloud
     word_frequencies = Counter()
@@ -85,40 +85,45 @@ def generate_wordcloud(keyword_frequencies):
     plt.show()
     print(Fore.GREEN + f"Nube de palabras guardada en: {wordcloud_path}")
 
-# Generar estadísticas y gráfico
-def generate_statistics(keyword_frequencies):
+# Función para generar gráficos estadísticos por categoría
+def generate_statistics_by_category(keyword_frequencies):
     # Crear la carpeta "statistics" dentro de "requerimiento3&4" si no existe
     stats_folder = "requerimiento3&4/statistics"
     if not os.path.exists(stats_folder):
         os.makedirs(stats_folder)
     
-    # Crear un dataframe de frecuencias
-    stats = []
-    for category, frequencies in keyword_frequencies.items():
-        for keyword, frequency in frequencies.items():
-            stats.append([category, keyword, frequency])
+    # Colores para cada categoría
+    category_colors = [
+        '#FF6F61', '#6B5B95', '#88B04B', '#F7CAC9', '#92A8D1', '#955251',
+        '#B565A7', '#009B77', '#DD4124', '#45B8AC', '#EFC050', '#5B5EA6'
+    ]
     
-    df_stats = pd.DataFrame(stats, columns=["Categoría", "Variable", "Frecuencia"])
+    # Crear y guardar un gráfico de barras para cada categoría
+    for idx, (category, frequencies) in enumerate(keyword_frequencies.items()):
+        df_category = pd.DataFrame(frequencies.items(), columns=["Variable", "Frecuencia"])
+        df_category = df_category.sort_values(by="Frecuencia", ascending=False)
+        
+        # Seleccionar color específico para la categoría
+        color = category_colors[idx % len(category_colors)]
 
-    # Visualización con matplotlib
-    plt.figure(figsize=(14, 8))
-    for category in keyword_frequencies.keys():
-        subset = df_stats[df_stats["Categoría"] == category]
-        plt.bar(subset["Variable"], subset["Frecuencia"], label=category)
-
-    plt.xticks(rotation=90, ha='right', fontsize=8)
-    plt.ylabel('Frecuencia')
-    plt.title('Frecuencia de Variables por Categoría', fontsize=14, weight='bold')
-    plt.legend(title="Categoría")
-    plt.tight_layout()
-    
-    # Guardar el gráfico
-    plt.savefig(f"{stats_folder}/frecuencia_variables_por_categoria.png", bbox_inches='tight', dpi=150)
-    plt.show()
+        # Generar el gráfico de barras
+        plt.figure(figsize=(12, 6))
+        plt.barh(df_category["Variable"], df_category["Frecuencia"], color=color)
+        plt.gca().invert_yaxis()  # Invertir el eje Y para que los más frecuentes estén arriba
+        plt.xlabel('Frecuencia', fontsize=12, weight='bold')
+        plt.ylabel('Variables', fontsize=12, weight='bold')
+        plt.title(f'Frecuencia de Variables en la Categoría: {category}', fontsize=14, weight='bold', color=color)
+        plt.grid(axis='x', linestyle='--', alpha=0.7)
+        plt.tight_layout()
+        
+        # Guardar el gráfico para cada categoría
+        plt.savefig(f"{stats_folder}/frecuencia_{category.replace(' ', '_')}.png", bbox_inches='tight', dpi=150)
+        plt.close()
+        print(Fore.GREEN + f"Gráfico de frecuencia de '{category}' guardado en {stats_folder}")
 
 # Función para imprimir el conteo final de palabras
 def print_final_count(keyword_frequencies):
-    print_title("Conteo Final de Palabras")
+    print_title("Conteo Final de Palabras por Categoría")
     for category, frequencies in keyword_frequencies.items():
         print(Fore.CYAN + f"\nCategoría: {category}")
         for keyword, count in frequencies.items():
@@ -138,11 +143,11 @@ print_title("Conteo de Palabras según Abstract")
 # Procesar los abstracts y generar las frecuencias
 keyword_frequencies = count_keywords_in_abstracts(df, categories)
 
-# Generar el gráfico de barras y la nube de palabras
-generate_statistics(keyword_frequencies)
+# Generar la única nube de palabras y los gráficos de barras por categoría
 generate_wordcloud(keyword_frequencies)
+generate_statistics_by_category(keyword_frequencies)
 
-# Imprimir el conteo final de palabras
+# Imprimir el conteo final de palabras por categoría
 print_final_count(keyword_frequencies)
 
 # Mostrar mensaje final en la terminal

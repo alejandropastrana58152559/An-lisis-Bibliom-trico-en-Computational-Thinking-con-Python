@@ -3,14 +3,18 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 from colorama import Fore, Style
+import seaborn as sns
 import warnings
+import re
 
 # Desactivar todos los warnings de matplotlib
 warnings.filterwarnings('ignore', category=UserWarning, module='matplotlib')
 warnings.filterwarnings('ignore', category=DeprecationWarning, module='matplotlib')
 warnings.filterwarnings('ignore', category=FutureWarning, module='matplotlib')
 
-# Función para mostrar título
+# Configuración de estilo de Seaborn para gráficos
+sns.set_style("whitegrid")
+
 def print_title(title):
     print("\n")
     print(Style.BRIGHT + Fore.CYAN + "=" * 60)
@@ -18,7 +22,6 @@ def print_title(title):
     print(Fore.CYAN + "=" * 60)
     print("\n")
 
-# Función para crear la carpeta si no existe
 def create_directory(path):
     if not os.path.exists(path):
         os.makedirs(path)
@@ -30,171 +33,148 @@ def generate_statistics(df, stat_type):
 
     print_title("Generador de Estadísticos .png")
 
+    color_palettes = {
+        'Autores más citados': 'coolwarm',
+        'Publicaciones por Año': 'rocket',
+        'Tipo de Producto': 'pastel',
+        'Afiliación de Autores': 'viridis',
+        'Análisis por Journal': 'mako',
+        'Base de Datos vs. Autor': 'flare',
+        'Artículos por Journal': 'crest',
+        'Publicaciones por Año y Base de Datos': 'ch:s=.25,rot=-.25',
+        'Top 10 Palabras Clave por Año': 'tab20'
+    }
+
+    palette = color_palettes.get(stat_type, 'tab10')
+
     if stat_type == 'Autores más citados':
-        # Filtrar autores válidos y contar apariciones
-        author_counts = df['Autor'].value_counts()
-        author_counts = author_counts[author_counts.index != 'Sin Valor'].head(15)
+        df_filtered = df[df['Autor'] != 'Sin Valor']
+        author_counts = df_filtered['Autor'].value_counts().head(15)
 
         with tqdm(total=100, desc="Generando estadístico de autores más citados", unit="step") as pbar:
             plt.figure(figsize=(10, 6))
-            author_counts.plot(kind='bar', color='skyblue')
-            plt.title('Top 15 Autores Más Citados')
-            plt.xlabel('Autor')
-            plt.ylabel('Cantidad de Citas')
+            author_counts.plot(kind='bar', color=sns.color_palette(palette, len(author_counts)))
+            plt.title('Top 15 Autores Más Citados', fontsize=14, color='darkblue', weight='bold')
+            plt.xlabel('Autor', fontsize=12, color='grey')
+            plt.ylabel('Cantidad de Citas', fontsize=12, color='grey')
             plt.xticks(rotation=45, ha='right')
             plt.tight_layout()
-            plt.savefig(f'{statistics_dir}/autores_mas_citados.png')
+            plt.savefig(f'{statistics_dir}/autores_mas_citados.png', bbox_inches='tight', dpi=150)
             plt.close()
             pbar.update(100)
 
-        print(Fore.GREEN + "Estadístico de autores más citados generado y guardado en 'statistics'")
-
     elif stat_type == 'Publicaciones por Año':
-        # Contar publicaciones por año
-        year_counts = df['Year'].value_counts().sort_index()
+        df_filtered = df[df['Year'] != 'Sin Valor']
+        year_counts = df_filtered['Year'].value_counts().sort_index()
 
         with tqdm(total=100, desc="Generando estadístico de publicaciones por año", unit="step") as pbar:
             plt.figure(figsize=(10, 6))
-            year_counts.plot(kind='bar', color='coral')
-            plt.title('Publicaciones por Año')
-            plt.xlabel('Año')
-            plt.ylabel('Cantidad de Publicaciones')
+            year_counts.plot(kind='bar', color=sns.color_palette(palette, len(year_counts)))
+            plt.title('Publicaciones por Año', fontsize=14, color='darkblue', weight='bold')
+            plt.xlabel('Año', fontsize=12, color='grey')
+            plt.ylabel('Cantidad de Publicaciones', fontsize=12, color='grey')
             plt.tight_layout()
-            plt.savefig(f'{statistics_dir}/publicaciones_por_anio.png')
+            plt.savefig(f'{statistics_dir}/publicaciones_por_anio.png', bbox_inches='tight', dpi=150)
             plt.close()
             pbar.update(100)
-
-        print(Fore.GREEN + "Estadístico de publicaciones por año generado y guardado en 'statistics'")
 
     elif stat_type == 'Tipo de Producto':
-        # Contar por tipo de producto
-        product_type_counts = df['Database'].value_counts()
+        df_filtered = df[df['Database'] != 'Sin Valor']
+        product_type_counts = df_filtered['Database'].value_counts()
 
         with tqdm(total=100, desc="Generando estadístico de tipo de producto", unit="step") as pbar:
-            plt.figure(figsize=(10, 6))
-            product_type_counts.plot(kind='pie', autopct='%1.1f%%', startangle=90)
-            plt.title('Distribución de Productos por Tipo')
+            plt.figure(figsize=(8, 8))
+            product_type_counts.plot(kind='pie', autopct='%1.1f%%', startangle=90, colors=sns.color_palette(palette, len(product_type_counts)))
+            plt.title('Distribución de Productos por Tipo', fontsize=14, color='darkblue', weight='bold')
             plt.ylabel('')
             plt.tight_layout()
-            plt.savefig(f'{statistics_dir}/tipo_de_producto.png')
+            plt.savefig(f'{statistics_dir}/tipo_de_producto.png', bbox_inches='tight', dpi=150)
             plt.close()
             pbar.update(100)
 
-        print(Fore.GREEN + "Estadístico de tipo de producto generado y guardado en 'statistics'")
-
     elif stat_type == 'Afiliación de Autores':
-        # Eliminar valores 'Sin Valor' en 'Publisher'
-        affiliation_counts = df['Publisher'].value_counts().drop(labels='Sin Valor').head(15)
+        df_filtered = df[df['Publisher'] != 'Sin Valor']
+        affiliation_counts = df_filtered['Publisher'].value_counts().head(15)
 
         with tqdm(total=100, desc="Generando estadístico de afiliación de autores", unit="step") as pbar:
             plt.figure(figsize=(10, 6))
-            affiliation_counts.plot(kind='bar', color='purple')
-            plt.title('Publicaciones por Institución')
-            plt.xlabel('Institución')
-            plt.ylabel('Cantidad de Publicaciones')
+            affiliation_counts.plot(kind='bar', color=sns.color_palette(palette, len(affiliation_counts)))
+            plt.title('Publicaciones por Institución', fontsize=14, color='darkblue', weight='bold')
+            plt.xlabel('Institución', fontsize=12, color='grey')
+            plt.ylabel('Cantidad de Publicaciones', fontsize=12, color='grey')
             plt.xticks(rotation=45, ha='right')
             plt.tight_layout()
-            plt.savefig(f'{statistics_dir}/afiliacion_autores.png')
+            plt.savefig(f'{statistics_dir}/afiliacion_autores.png', bbox_inches='tight', dpi=150)
             plt.close()
             pbar.update(100)
 
-        print(Fore.GREEN + "Estadístico de afiliación de autores generado y guardado en 'statistics'")
-
     elif stat_type == 'Análisis por Journal':
-        # Contar artículos por journal
-        journal_counts = df['Publication Title'].value_counts().head(15)
+        df_filtered = df[df['Publication Title'] != 'Sin Valor']
+        journal_counts = df_filtered['Publication Title'].value_counts().head(15)
 
         with tqdm(total=100, desc="Generando estadístico de análisis por journal", unit="step") as pbar:
             plt.figure(figsize=(10, 6))
-            journal_counts.plot(kind='bar', color='teal')
-            plt.title('Publicaciones por Journal')
-            plt.xlabel('Journal')
-            plt.ylabel('Cantidad de Publicaciones')
-            plt.xticks(rotation=45, ha='right', fontsize=9)  # Ajuste en tamaño de fuente
+            journal_counts.plot(kind='bar', color=sns.color_palette(palette, len(journal_counts)))
+            plt.title('Publicaciones por Journal', fontsize=14, color='darkblue', weight='bold')
+            plt.xlabel('Journal', fontsize=12, color='grey')
+            plt.ylabel('Cantidad de Publicaciones', fontsize=12, color='grey')
+            plt.xticks(rotation=45, ha='right', fontsize=9)
             plt.tight_layout()
-            plt.savefig(f'{statistics_dir}/analisis_por_journal.png')
+            plt.savefig(f'{statistics_dir}/analisis_por_journal.png', bbox_inches='tight', dpi=150)
             plt.close()
             pbar.update(100)
 
-        print(Fore.GREEN + "Estadístico de análisis por journal generado y guardado en 'statistics'")
-
     elif stat_type == 'Base de Datos vs. Autor':
-        # Cruzar base de datos con autor
-        db_author_counts = df.groupby(['Database', 'Autor']).size().unstack(fill_value=0)
+        df_filtered = df[(df['Database'] != 'Sin Valor') & (df['Autor'] != 'Sin Valor')]
+        db_author_counts = df_filtered.groupby(['Database', 'Autor']).size().unstack(fill_value=0)
 
-        # Limitar solo a las 10 bases de datos y 10 autores más frecuentes
         top_databases = db_author_counts.sum(axis=1).nlargest(10).index
         db_author_counts = db_author_counts.loc[top_databases, :]
 
-        # Limitar solo a los 10 autores más frecuentes para cada base de datos
         top_authors = db_author_counts.sum(axis=0).nlargest(10).index
         db_author_counts = db_author_counts.loc[:, top_authors]
 
         with tqdm(total=100, desc="Generando estadístico de base de datos vs. autor", unit="step") as pbar:
-            plt.figure(figsize=(12, 8))  # Ajustar tamaño de la figura
-            db_author_counts.plot(kind='bar', stacked=True, colormap='viridis')
-
-            # Título y etiquetas
-            plt.title('Cantidad de Productos por Autor y Base de Datos')
-            plt.xlabel('Base de Datos')
-            plt.ylabel('Cantidad de Productos')
-            
-            # Ajustar rotación de etiquetas para que no se solapen
+            plt.figure(figsize=(12, 8))
+            db_author_counts.plot(kind='bar', stacked=True, colormap=palette)
+            plt.title('Cantidad de Productos por Autor y Base de Datos', fontsize=14, color='darkblue', weight='bold')
+            plt.xlabel('Base de Datos', fontsize=12, color='grey')
+            plt.ylabel('Cantidad de Productos', fontsize=12, color='grey')
             plt.xticks(rotation=45, ha='right', fontsize=10)
-            plt.yticks(fontsize=10)
-            
-            # Ajustar la leyenda
             plt.legend(title='Autor', bbox_to_anchor=(1.05, 1), loc='upper left', fontsize=8)
-
-            # Ajustar el diseño para que no se corte la imagen
             plt.tight_layout()
-
-            # Guardar la imagen en la carpeta de estadísticas con DPI ajustado
             plt.savefig(f'{statistics_dir}/base_datos_vs_autor.png', bbox_inches='tight', dpi=150)
             plt.close()
             pbar.update(100)
 
     elif stat_type == 'Artículos por Journal':
-        # Resumen de artículos por journal y autor
-        journal_author_counts = df.groupby(['Publication Title', 'Autor']).size().unstack(fill_value=0)
+        df_filtered = df[(df['Publication Title'] != 'Sin Valor') & (df['Autor'] != 'Sin Valor')]
+        journal_author_counts = df_filtered.groupby(['Publication Title', 'Autor']).size().unstack(fill_value=0)
 
-        # Limitar solo a los 10 journals más frecuentes
         top_journals = journal_author_counts.sum(axis=1).nlargest(10).index
         journal_author_counts = journal_author_counts.loc[top_journals, :]
 
-        # Limitar solo a los 10 autores más frecuentes para cada journal
         top_authors = journal_author_counts.sum(axis=0).nlargest(10).index
         journal_author_counts = journal_author_counts.loc[:, top_authors]
 
         with tqdm(total=100, desc="Generando estadístico de artículos por journal", unit="step") as pbar:
-            plt.figure(figsize=(12, 8))  # Ajustar tamaño de la figura
-            journal_author_counts.plot(kind='bar', stacked=True, colormap='plasma')
-
-            # Título y etiquetas
-            plt.title('Artículos por Journal y Autor')
-            plt.xlabel('Journal')
-            plt.ylabel('Cantidad de Artículos')
-            
-            # Ajustar rotación de etiquetas para que no se solapen
+            plt.figure(figsize=(12, 8))
+            journal_author_counts.plot(kind='bar', stacked=True, colormap=palette)
+            plt.title('Artículos por Journal y Autor', fontsize=14, color='darkblue', weight='bold')
+            plt.xlabel('Journal', fontsize=12, color='grey')
+            plt.ylabel('Cantidad de Artículos', fontsize=12, color='grey')
             plt.xticks(rotation=45, ha='right', fontsize=9)
-            plt.yticks(fontsize=9)
-            
-            # Ajustar la leyenda
             plt.legend(title='Autor', bbox_to_anchor=(1.05, 1), loc='upper left', fontsize=8)
-
-            # Ajustar el diseño para que no se corte la imagen
             plt.tight_layout()
-
-            # Guardar la imagen en la carpeta de estadísticas con DPI ajustado
             plt.savefig(f'{statistics_dir}/articulos_por_journal.png', bbox_inches='tight', dpi=150)
             plt.close()
             pbar.update(100)
 
-        print(Fore.GREEN + "Estadístico de artículos por journal generado y guardado en 'statistics'")
-
-
 # Cargar el archivo CSV
 df = pd.read_csv('DataFinal/combined_datafinal.csv')
+
+# Preprocesar el título de publicación para eliminar contenido no deseado
+df['Publication Title'] = df['Publication Title'].str.replace(r"[,(-].*", "", regex=True).str.strip()
 
 # Generar todas las estadísticas solicitadas
 statistics_to_generate = [
