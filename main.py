@@ -39,7 +39,6 @@ def crear_interfaz():
 
     # Cambiar color de fondo
     ventana.configure(bg='black')
-
     label = tk.Label(ventana, text="Seleccione un algoritmo de ordenamiento para ejecutar:", bg='black', fg='white', font=('Arial', 12, 'bold'))
     label.pack(pady=10)
 

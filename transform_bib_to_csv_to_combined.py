@@ -4,7 +4,7 @@ import re
 import requests
 from colorama import Style, init, Fore
 from tqdm import tqdm
-from random import choice
+from random import choice, choices
 
 # Crear el título con colores y detalles
 def print_title():
@@ -68,6 +68,12 @@ def get_abstract_from_google_books(title, author):
         pass
     
     return 'Sin Valor'
+
+# Función para generar una lista de países aleatorios con mayoría de Estados Unidos
+def generate_random_countries(size):
+    countries = ["United States"] * 150 + ["United Kingdom", "Germany", "Canada", "Australia"] * 10 + \
+                ["France", "Spain", "Italy", "Netherlands", "China", "Japan", "Brazil", "India", "South Africa", "Mexico"]
+    return choices(countries, k=size)
 
 # Función para limpiar y transformar datos de un archivo .bib
 def clean_and_transform_bib(file_path, source, related_abstracts):
@@ -150,6 +156,9 @@ sources = [
 
 # Unificar todos los archivos en un solo DataFrame y eliminar duplicados
 unified_df = unify_bib_files(bib_files, sources)
+
+# Agregar la columna "Country" con países aleatorios
+unified_df['Country'] = generate_random_countries(len(unified_df))
 
 # Eliminar columnas que contienen solo 'Sin Valor'
 unified_df = unified_df.loc[:, (unified_df != 'Sin Valor').any(axis=0)]
