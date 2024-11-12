@@ -1,20 +1,15 @@
-categoría: Habilidades 
-
-Variables:
+Categoría: Habilidades
 Abstraction
-Algorithm
-Algorithmic thinking
+Algorithm - Algorithmic thinking
 Coding
-Collaboration
-Cooperation
+Collaboration - Cooperation
 Creativity
 Critical thinking
 Debug
 Decomposition
 Evaluation
 Generalization
-Logic
-Logical thinking
+Logic - Logical thinking
 Modularity
 Patterns recognition
 Problem solving
@@ -23,58 +18,49 @@ Representation
 Reuse
 Simulation
 
-categoria: Conceptos Computationales
-
-Variables:
+Categoría: Conceptos Computationales
 Conditionals
 Control structures
 Directions
 Events
-Funtions
+Functions
 Loops
 Modular structure
 Parallelism
 Sequences
-Software/hardware
+Software - hardware
 Variables
-Actitudes Emotional
+
+Categoría: Actitudes Emocionales
 Engagement
 Motivation
 Perceptions
 Persistence
-Self-efficacy
-Self-perceived
+Self-efficacy - Self-perceived
 
-categoria: Propiedades psicométricas
-
-variables:
+Categoría: Propiedades psicométricas
 Classical Test Theory - CTT
 Confirmatory Factor Analysis - CFA
 Exploratory Factor Analysis - EFA
-Item Response Theory (IRT) - IRT
+Item Response Theory - IRT
 Reliability
 Structural Equation Model - SEM
 Validity
 
-categoría: Herramienta de evaluación
-
-variables:
+Categoría: Herramienta de evaluación
 Beginners Computational Thinking test - BCTt
 Coding Attitudes Survey - ESCAS
 Collaborative Computing Observation Instrument
 Competent Computational Thinking test - cCTt
 Computational thinking skills test - CTST
 Computational concepts
-Computational Thinking Assessment for Chinese Elementary
-Students - CTA-CES
+Computational Thinking Assessment for Chinese Elementary Students - CTA-CES
 Computational Thinking Challenge - CTC
 Computational Thinking Levels Scale - CTLS
 Computational Thinking Scale - CTS
 Computational Thinking Skill Levels Scale - CTS
 Computational Thinking Test - CTt
-Computational Thinking Test
-Computational Thinking Test for Elementary School Students -
-CTT-ES
+Computational Thinking Test for Elementary School Students - CTT-ES
 Computational Thinking Test for Lower Primary - CTtLP
 Computational thinking-skill tasks on numbers and arithmetic
 Computerized Adaptive Programming Concepts Test - CAPCT
@@ -90,8 +76,7 @@ Self-efficacy scale
 STEM learning attitude scale - STEM-LAS
 The computational thinking scale
 
-categoria: Diseño de investigación
-
+Categoría: Diseño de investigación
 No experimental
 Experimental
 Longitudinal research
@@ -100,26 +85,22 @@ Post-test
 Pre-test
 Quasi-experiments
 
-categoria: Nivel de escolaridad
-
-Upper elementary education 
- Upper elementary school
-Primary school 
-Primary education 
+Categoría: Nivel de escolaridad
+Upper elementary education
+Upper elementary school
+Primary school
+Primary education
 Elementary school
 Early childhood education
-Kindergarten -Preschool
-Secondary school 
+Kindergarten - Preschool
+Secondary school
 Secondary education
-high school 
-higher education
-University 
+High school
+Higher education
+University
 College
 
-
-categoria:Medio 
-
-variables:
+Categoría: Medio
 Block programming
 Mobile application
 Pair programming
@@ -130,9 +111,7 @@ Spreadsheet
 STEM
 Unplugged activities
 
-categoria: Estrategia
-
-variables:
+Categoría: Estrategia
 Construct-by-self mind mapping - CBS-MM
 Construct-on-scaffold mind mapping - COS-MM
 Design-based learning - CTDBL
@@ -151,9 +130,7 @@ Problem-based learning
 Project-based learning
 Universal design for learning
 
-categoria: Herramienta 
-
-variables:
+Categoría: Herramienta
 Alice
 Arduino
 Scratch

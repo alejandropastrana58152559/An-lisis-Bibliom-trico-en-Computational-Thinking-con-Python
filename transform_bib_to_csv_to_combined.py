@@ -245,6 +245,3 @@ print(Fore.RED + "=" * 60)
 # Mostrar el número de entradas duplicadas
 print(f'Número de entradas duplicadas antes de la eliminación: {count_duplicated}')
 print(Fore.RED + "=" * 60)
-
-
-

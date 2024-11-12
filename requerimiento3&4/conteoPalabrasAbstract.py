@@ -76,7 +76,7 @@ def generate_wordcloud(keyword_frequencies):
     plt.show()
     print(Fore.GREEN + f"Nube de palabras guardada en: {wordcloud_path}")
 
-# Función para generar gráficos estadísticos por categoría con diseño Seaborn
+# Función para generar gráficos estadísticos por categoría con dis eño Seaborn
 def generate_statistics_by_category(keyword_frequencies):
     stats_folder = "requerimiento3&4/statistics"
     if not os.path.exists(stats_folder):
