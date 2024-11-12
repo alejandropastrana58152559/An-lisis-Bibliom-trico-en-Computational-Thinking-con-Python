@@ -29,7 +29,7 @@ statistics_images = [
 wordcount_images = [
     'nube_palabras.png',
     'frecuencia_Habilidades.png',
-    'frecuencia_Conceptos_Computacionales.png',
+    'frecuencia_Conceptos_Computationales.png',
     'frecuencia_Actitudes_Emocionales.png',
     'frecuencia_Propiedades_psicométricas.png',
     'frecuencia_Herramienta_de_evaluación.png',
